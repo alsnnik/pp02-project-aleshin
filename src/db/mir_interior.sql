@@ -1,0 +1,1 @@
+SELECT product_id, name, image_path FROM products LIMIT 10;

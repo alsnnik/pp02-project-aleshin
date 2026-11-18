@@ -1,5 +1,6 @@
 import sys
 import os
+
 # Добавляем корневую папку проекта в пути поиска Python
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.db.database import Database
@@ -14,21 +15,37 @@ from login_window import LoginWindow
 # Константа для расчета скидки
 DISCOUNT_RATE = 0.75
 
+# --- УМНЫЙ ПОИСК ПАПКИ RESOURCES ---
+def get_resource_path(filename):
+    """Ищет файл в папке resources, поднимаясь по уровням вверх от main.py"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    possible_paths = [
+        os.path.join(current_dir, "resources", filename),
+        os.path.join(os.path.dirname(current_dir), "resources", filename),
+        os.path.join(os.path.dirname(os.path.dirname(current_dir)), "resources", filename)
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    return possible_paths[0]
+
 def calculate_price_interior(item_id, base_price):
     try:
-        # Создаем временное подключение для проверки истории заказов
         temp_db = Database()
         conn = temp_db.get_connection()
         if conn is None:
             return base_price
             
         cursor = conn.cursor()
+        
         query = """
             SELECT COUNT(*) 
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.order_id
             WHERE oi.product_id = %s 
-            AND o.order_date >= '2026-01-01';
+            AND o.order_date >= CURRENT_DATE - INTERVAL '1 month';
         """
         cursor.execute(query, (item_id,))
         result = cursor.fetchone()
@@ -38,7 +55,7 @@ def calculate_price_interior(item_id, base_price):
         temp_db.release_connection(conn)
 
         if orders_count == 0:
-            return base_price * DISCOUNT_RATE
+            return round(base_price * DISCOUNT_RATE, 2)
         else:
             return base_price
     except Exception as e:
@@ -63,31 +80,41 @@ def create_card(product, index, main_window):
     if not manufacturer:
         manufacturer = "Без бренда"
 
-    if index == 2:
-        total_quantity = 0 
-
     # Создаем кликабельную карточку
     card = ClickableCard(product, main_window.show_product_info)
+    card.setFixedHeight(110) # Фиксируем высоту карточки, чтобы они были ровными
+    
     card_layout = QHBoxLayout()
+    card_layout.setContentsMargins(10, 10, 15, 10) # Отступы: слева, сверху, справа, снизу
+    card_layout.setSpacing(15) # Расстояние между картинкой и текстом
 
-    # Картинка
+    # --- 1. КАРТИНКА (Слева) ---
     image_label = QLabel()
     img_name = f"IMG_13_{product_id:03d}.png"
-    img_path = os.path.join(r"C:\Users\Sustesion\up11-project-aleshin\resources", img_name)
+    
+    img_path = get_resource_path(img_name)
+    fallback_path = get_resource_path("picture.png")
     
     if os.path.exists(img_path):
         pixmap = QPixmap(img_path)
     else:
-        pixmap = QPixmap(r"C:\Users\Sustesion\up11-project-aleshin\resources\picture.png")
+        pixmap = QPixmap(fallback_path)
        
-    image_label.setPixmap(pixmap.scaled(100, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-    image_label.setFixedSize(100, 100)
-    card_layout.addWidget(image_label)
+    # Масштабируем картинку ровно под размер 90x90 с сохранением пропорций
+    image_label.setPixmap(pixmap.scaled(90, 90, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+    image_label.setFixedSize(90, 90)
+    image_label.setStyleSheet("background-color: transparent;")
+    
+    # Выравниваем картинку по центру по вертикали
+    card_layout.addWidget(image_label, alignment=Qt.AlignVCenter)
 
-    # Текст
+    # --- 2. ТЕКСТ (По центру) ---
     text_layout = QVBoxLayout()
+    text_layout.setSpacing(5) # Отступ между строками текста
+    text_layout.setAlignment(Qt.AlignVCenter) # Выравниваем текст по центру
+    
     name_label = QLabel(f"{manufacturer} | {name}")
-    name_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #000000;")
+    name_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #000000;")
     
     cat_label = QLabel(f"Категория: {category}")
     cat_label.setStyleSheet("color: #000000; font-size: 13px;")
@@ -98,9 +125,11 @@ def create_card(product, index, main_window):
     text_layout.addWidget(name_label)
     text_layout.addWidget(cat_label)
     text_layout.addWidget(qty_label)
-    card_layout.addLayout(text_layout)
+    
+    # Добавляем текст, он займет всё свободное место
+    card_layout.addLayout(text_layout, stretch=1)
 
-    # Цены
+    # --- 3. ЦЕНЫ (Справа) ---
     old_price = float(price)
     new_price = calculate_price_interior(product_id, old_price)
     
@@ -108,35 +137,39 @@ def create_card(product, index, main_window):
     if old_price > 0:
         discount_percent = (old_price - new_price) / old_price * 100
 
-    price_layout = QHBoxLayout()
+    price_layout = QVBoxLayout()
+    price_layout.setSpacing(2)
+    price_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter) # Выравниваем вправо и по центру
     
+    # Старая цена (перечеркнутая) - всегда сверху
     old_price_label = QLabel(f"<s>{old_price:.2f} ₽</s>")
     old_price_label.setStyleSheet("color: red; font-size: 14px;")
-    price_layout.addWidget(old_price_label)
+    price_layout.addWidget(old_price_label, alignment=Qt.AlignRight)
 
+    # Новая цена - всегда снизу
     new_price_label = QLabel(f"{new_price:.2f} ₽")
-    
     if discount_percent > 15:
         new_price_label.setStyleSheet("color: #2E8B57; font-weight: bold; font-size: 18px;")
     else:
         new_price_label.setStyleSheet("color: black; font-weight: bold; font-size: 18px;")
-        
-    price_layout.addWidget(new_price_label)
+    price_layout.addWidget(new_price_label, alignment=Qt.AlignRight)
     
-    price_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-    card_layout.addLayout(price_layout)
-
+    # Управление видимостью старой цены
     if discount_percent > 0:
         old_price_label.show()
     else:
         old_price_label.hide()
 
+    # Добавляем блок с ценами
+    card_layout.addLayout(price_layout)
+
     card.setLayout(card_layout)
 
-    if total_quantity == 0:
-        card.setStyleSheet("background-color: #ADD8E6; border-radius: 10px; padding: 10px;")
+    # --- 4. ПОДСВЕТКА И СТИЛИ КАРТОЧКИ ---
+    if total_quantity <= 3:
+        card.setStyleSheet("background-color: #ff8080; border-radius: 10px;")
     else:
-        card.setStyleSheet("background-color: #D2F6E7; border-radius: 10px; padding: 10px;")
+        card.setStyleSheet("background-color: #D2F6E7; border-radius: 10px;")
 
     return card
 
@@ -152,7 +185,9 @@ class MainWindow(QMainWindow):
         
         self.setWindowTitle(f"Мир интерьера — Каталог ({role_title})")
         self.resize(850, 600)
-        self.setWindowIcon(QIcon(r"C:\Users\Sustesion\up11-project-aleshin\resources\Мир интерьера.ico"))
+        
+        icon_path = get_resource_path("Мир интерьера.ico")
+        self.setWindowIcon(QIcon(icon_path))
 
         self.setStyleSheet("""
             QMainWindow { background-color: #FFFFFF; font-family: Calibri; }
@@ -190,7 +225,8 @@ class MainWindow(QMainWindow):
         logo_layout = QHBoxLayout(logo_container)
         
         logo = QLabel()
-        logo_path = r"C:\Users\Sustesion\up11-project-aleshin\resources\Мир интерьера.png"
+        logo_path = get_resource_path("Мир интерьера.png")
+        
         if os.path.exists(logo_path):
             logo.setPixmap(QPixmap(logo_path).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         logo_layout.addWidget(logo)
@@ -274,6 +310,7 @@ class MainWindow(QMainWindow):
         self.container.setStyleSheet("background-color: #FFFFFF;")
         self.list_layout = QVBoxLayout(self.container)
         self.list_layout.setAlignment(Qt.AlignTop)
+        self.list_layout.setSpacing(10) # Добавляем расстояние между карточками
         
         self.scroll.setWidget(self.container)
         main_layout.addWidget(self.scroll)
@@ -307,8 +344,6 @@ class MainWindow(QMainWindow):
             self.list_layout.addWidget(error_label)
             
         self.list_layout.addStretch()
-
-    # --- ФУНКЦИИ КНОПОК ---
 
     def show_product_info(self, product_data):
         (p_id, name, category, manufacturer, price, total_quantity) = product_data
@@ -355,7 +390,6 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def show_admin_panel(self):
-        """Открывает панель администратора со списком пользователей"""
         users = self.db.get_users()
         dialog = QDialog(self)
         dialog.setWindowTitle("Админ-панель: Пользователи")

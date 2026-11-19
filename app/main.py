@@ -15,7 +15,7 @@ from login_window import LoginWindow
 # Константа для расчета скидки
 DISCOUNT_RATE = 0.75
 
-# --- УМНЫЙ ПОИСК ПАПКИ RESOURCES ---
+# УМНЫЙ ПОИСК ПАПКИ RESOURCES 
 def get_resource_path(filename):
     """Ищет файл в папке resources, поднимаясь по уровням вверх от main.py"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,7 +45,8 @@ def calculate_price_interior(item_id, base_price):
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.order_id
             WHERE oi.product_id = %s 
-            AND o.order_date >= CURRENT_DATE - INTERVAL '1 month';
+            AND o.order_date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
+            AND o.order_date < date_trunc('month', CURRENT_DATE)
         """
         cursor.execute(query, (item_id,))
         result = cursor.fetchone()
@@ -69,6 +70,9 @@ class ClickableCard(QWidget):
         self.product_data = product_data
         self.click_callback = click_callback
         self.setCursor(Qt.PointingHandCursor) # Курсор в виде руки
+        
+        # Эта строка ОБЯЗАТЕЛЬНА, чтобы PySide6 красил фон QWidget целиком
+        self.setAttribute(Qt.WA_StyledBackground, True) 
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -82,13 +86,13 @@ def create_card(product, index, main_window):
 
     # Создаем кликабельную карточку
     card = ClickableCard(product, main_window.show_product_info)
-    card.setFixedHeight(110) # Фиксируем высоту карточки, чтобы они были ровными
+    card.setFixedHeight(110) # Фиксируем высоту карточки
     
     card_layout = QHBoxLayout()
-    card_layout.setContentsMargins(10, 10, 15, 10) # Отступы: слева, сверху, справа, снизу
+    card_layout.setContentsMargins(10, 10, 15, 10) # Отступы
     card_layout.setSpacing(15) # Расстояние между картинкой и текстом
 
-    # --- 1. КАРТИНКА (Слева) ---
+    # 1. КАРТИНКА (Слева) 
     image_label = QLabel()
     img_name = f"IMG_13_{product_id:03d}.png"
     
@@ -100,36 +104,34 @@ def create_card(product, index, main_window):
     else:
         pixmap = QPixmap(fallback_path)
        
-    # Масштабируем картинку ровно под размер 90x90 с сохранением пропорций
     image_label.setPixmap(pixmap.scaled(90, 90, Qt.KeepAspectRatio, Qt.SmoothTransformation))
     image_label.setFixedSize(90, 90)
     image_label.setStyleSheet("background-color: transparent;")
     
-    # Выравниваем картинку по центру по вертикали
     card_layout.addWidget(image_label, alignment=Qt.AlignVCenter)
 
-    # --- 2. ТЕКСТ (По центру) ---
+    # 2. ТЕКСТ (По центру) 
     text_layout = QVBoxLayout()
-    text_layout.setSpacing(5) # Отступ между строками текста
-    text_layout.setAlignment(Qt.AlignVCenter) # Выравниваем текст по центру
+    text_layout.setSpacing(5) 
+    text_layout.setAlignment(Qt.AlignVCenter) 
     
+    # Синий жирный заголовок, без белого фона
     name_label = QLabel(f"{manufacturer} | {name}")
-    name_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #000000;")
+    name_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #0B2C6F; background-color: transparent;") 
     
-    cat_label = QLabel(f"Категория: {category}")
-    cat_label.setStyleSheet("color: #000000; font-size: 13px;")
+    cat_label = QLabel(f"ID Категории: {category}")
+    cat_label.setStyleSheet("color: #333333; font-size: 12px; background-color: transparent;")
     
-    qty_label = QLabel(f"Количество: {int(total_quantity)}")
-    qty_label.setStyleSheet("color: #000000; font-size: 13px;")
+    qty_label = QLabel(f"Доступно для покупки: {int(total_quantity)} шт.")
+    qty_label.setStyleSheet("color: #333333; font-size: 12px; background-color: transparent;")
     
     text_layout.addWidget(name_label)
     text_layout.addWidget(cat_label)
     text_layout.addWidget(qty_label)
     
-    # Добавляем текст, он займет всё свободное место
     card_layout.addLayout(text_layout, stretch=1)
 
-    # --- 3. ЦЕНЫ (Справа) ---
+    # 3. ЦЕНЫ (Справа) 
     old_price = float(price)
     new_price = calculate_price_interior(product_id, old_price)
     
@@ -139,37 +141,39 @@ def create_card(product, index, main_window):
 
     price_layout = QVBoxLayout()
     price_layout.setSpacing(2)
-    price_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter) # Выравниваем вправо и по центру
+    price_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter) 
     
-    # Старая цена (перечеркнутая) - всегда сверху
+    # Старая цена (перечеркнутая, красная, мелкая)
     old_price_label = QLabel(f"<s>{old_price:.2f} ₽</s>")
-    old_price_label.setStyleSheet("color: red; font-size: 14px;")
+    old_price_label.setStyleSheet("color: red; font-size: 12px; background-color: transparent;")
     price_layout.addWidget(old_price_label, alignment=Qt.AlignRight)
 
-    # Новая цена - всегда снизу
+    # Новая цена
     new_price_label = QLabel(f"{new_price:.2f} ₽")
-    if discount_percent > 15:
-        new_price_label.setStyleSheet("color: #2E8B57; font-weight: bold; font-size: 18px;")
+    if discount_percent > 0:
+        # Темно-зеленая, если есть скидка
+        new_price_label.setStyleSheet("color: #005A2F; font-weight: bold; font-size: 16px; background-color: transparent;")
     else:
-        new_price_label.setStyleSheet("color: black; font-weight: bold; font-size: 18px;")
+        # Черная, если скидки нет
+        new_price_label.setStyleSheet("color: black; font-weight: bold; font-size: 16px; background-color: transparent;")
     price_layout.addWidget(new_price_label, alignment=Qt.AlignRight)
     
-    # Управление видимостью старой цены
     if discount_percent > 0:
         old_price_label.show()
     else:
         old_price_label.hide()
 
-    # Добавляем блок с ценами
     card_layout.addLayout(price_layout)
 
     card.setLayout(card_layout)
 
-    # --- 4. ПОДСВЕТКА И СТИЛИ КАРТОЧКИ ---
+    # 4. ПОДСВЕТКА И СТИЛИ КАРТОЧКИ (КАК НА СКРИНШОТЕ)
     if total_quantity <= 3:
-        card.setStyleSheet("background-color: #ff8080; border-radius: 10px;")
+        # Красный фон, БЕЗ рамки
+        card.setStyleSheet("background-color: #ff8080; border: none; border-radius: 5px;")
     else:
-        card.setStyleSheet("background-color: #D2F6E7; border-radius: 10px;")
+        # Белый фон, СЕРАЯ РАМКА
+        card.setStyleSheet("background-color: #FFFFFF; border: 1px solid #CCCCCC; border-radius: 5px;")
 
     return card
 
@@ -230,6 +234,8 @@ class MainWindow(QMainWindow):
         if os.path.exists(logo_path):
             logo.setPixmap(QPixmap(logo_path).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         logo_layout.addWidget(logo)
+            
+        logo_layout.addWidget(logo)
         
         logo_text = QLabel("Мир интерьера")
         logo_text.setStyleSheet("font-weight: bold; color: #1a5e3a; font-size: 14px;")
@@ -258,7 +264,7 @@ class MainWindow(QMainWindow):
         line.setStyleSheet("background-color: #E0E0E0;")
         main_layout.addWidget(line)
 
-        # --- КНОПКИ ---
+        # КНОПКИ 
         buttons_layout = QHBoxLayout()
         self.order_button = QPushButton("Купить товар")
         self.manager_button = QPushButton("Заказы (менеджер)")
@@ -274,7 +280,7 @@ class MainWindow(QMainWindow):
         buttons_layout.addStretch()
         main_layout.addLayout(buttons_layout)
 
-        # --- ФИЛЬТРЫ ---
+        # ФИЛЬТРЫ 
         filters_layout = QHBoxLayout()
         filters_layout.setContentsMargins(0, 10, 0, 10)
         
@@ -301,7 +307,7 @@ class MainWindow(QMainWindow):
         
         main_layout.addLayout(filters_layout)
 
-        # --- КАТАЛОГ ---
+        # КАТАЛОГ 
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setStyleSheet("QScrollArea { border: none; background-color: #FFFFFF; }")
@@ -310,7 +316,7 @@ class MainWindow(QMainWindow):
         self.container.setStyleSheet("background-color: #FFFFFF;")
         self.list_layout = QVBoxLayout(self.container)
         self.list_layout.setAlignment(Qt.AlignTop)
-        self.list_layout.setSpacing(10) # Добавляем расстояние между карточками
+        self.list_layout.setSpacing(10) # Расстояние между карточками
         
         self.scroll.setWidget(self.container)
         main_layout.addWidget(self.scroll)

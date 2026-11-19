@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="bpC3Cx_sE3kK2XSKJVfG">
-    <mxGraphModel dx="774" dy="1314" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2121" dy="2770" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -27,7 +27,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Есть заказы?&lt;/div&gt;" vertex="1">
-          <mxGeometry height="200" width="240" x="270" y="405" as="geometry" />
+          <mxGeometry height="200" width="240" x="260" y="405" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-7" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-6" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;edgeStyle=orthogonalEdgeStyle;curved=1;curveGeometry=1;" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.2858" as="geometry">
@@ -287,25 +287,25 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-77" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;" value="Начало" vertex="1">
-          <mxGeometry height="60" width="420" x="590" y="1110" as="geometry" />
+          <mxGeometry height="60" width="420" x="190" y="1450" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-78" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-87" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="eIszsR3-EfdVA4BG_L_7-79" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.1251" as="geometry">
             <Array as="points">
-              <mxPoint x="799.5" y="1330" />
-              <mxPoint x="799.5" y="1340" />
+              <mxPoint x="399.5" y="1670" />
+              <mxPoint x="399.5" y="1680" />
             </Array>
-            <mxPoint x="800" y="1290" as="sourcePoint" />
-            <mxPoint x="799.5" y="1350" as="targetPoint" />
+            <mxPoint x="400" y="1630" as="sourcePoint" />
+            <mxPoint x="399.5" y="1690" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-79" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Найден?&lt;/div&gt;" vertex="1">
-          <mxGeometry height="200" width="240" x="680" y="1420" as="geometry" />
+          <mxGeometry height="200" width="240" x="280" y="1760" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-80" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-79" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;edgeStyle=orthogonalEdgeStyle;curved=1;curveGeometry=1;" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.2814" as="geometry">
-            <mxPoint x="700.5" y="1490" as="sourcePoint" />
-            <mxPoint x="640" y="1640" as="targetPoint" />
+            <mxPoint x="300.5" y="1830" as="sourcePoint" />
+            <mxPoint x="240" y="1980" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-97" connectable="0" parent="eIszsR3-EfdVA4BG_L_7-80" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="Да" vertex="1">
@@ -315,8 +315,8 @@
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-81" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-79" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;edgeStyle=orthogonalEdgeStyle;curved=1;curveGeometry=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.2735" as="geometry">
-            <mxPoint x="920" y="1470" as="sourcePoint" />
-            <mxPoint x="950" y="1640" as="targetPoint" />
+            <mxPoint x="520" y="1810" as="sourcePoint" />
+            <mxPoint x="550" y="1980" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-96" connectable="0" parent="eIszsR3-EfdVA4BG_L_7-81" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="Нет" vertex="1">
@@ -327,37 +327,37 @@
         <mxCell id="eIszsR3-EfdVA4BG_L_7-84" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-94" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;edgeStyle=orthogonalEdgeStyle;curved=1;curveGeometry=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.3016" as="geometry">
             <Array as="points">
-              <mxPoint x="640" y="1788" />
-              <mxPoint x="760" y="1788" />
+              <mxPoint x="240" y="2128" />
+              <mxPoint x="360" y="2128" />
             </Array>
-            <mxPoint x="666.4000000000001" y="1697.8400000000001" as="sourcePoint" />
-            <mxPoint x="760" y="1880" as="targetPoint" />
+            <mxPoint x="266.4000000000001" y="2037.8400000000001" as="sourcePoint" />
+            <mxPoint x="360" y="2220" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-85" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-95" style="endArrow=classic;html=1;rounded=0;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;startSize=20;endSize=14;edgeStyle=orthogonalEdgeStyle;curved=1;curveGeometry=1;exitX=0.452;exitY=1.048;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
           <mxGeometry height="50" relative="1" width="50" x="-0.1349" as="geometry">
             <Array as="points">
-              <mxPoint x="949.4" y="1790" />
-              <mxPoint x="840" y="1790" />
+              <mxPoint x="549.4" y="2130" />
+              <mxPoint x="440" y="2130" />
             </Array>
-            <mxPoint x="950" y="1700" as="sourcePoint" />
-            <mxPoint x="840" y="1880" as="targetPoint" />
+            <mxPoint x="550" y="2040" as="sourcePoint" />
+            <mxPoint x="440" y="2220" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-86" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;" value="Конец" vertex="1">
-          <mxGeometry height="60" width="160" x="720" y="1880" as="geometry" />
+          <mxGeometry height="60" width="160" x="320" y="2220" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-87" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Ввод логин&amp;nbsp;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="420" x="590" y="1220" as="geometry" />
+          <mxGeometry height="60" width="420" x="190" y="1560" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-92" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Запрос к БД" vertex="1">
-          <mxGeometry height="60" width="430" x="590" y="1320" as="geometry" />
+          <mxGeometry height="60" width="430" x="190" y="1660" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-94" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="Вывод списка" vertex="1">
-          <mxGeometry height="50" width="220" x="530" y="1645" as="geometry" />
+          <mxGeometry height="50" width="220" x="130" y="1985" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-95" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="Вывод: пусто" vertex="1">
-          <mxGeometry height="50" width="220" x="850" y="1645" as="geometry" />
+          <mxGeometry height="50" width="220" x="450" y="1985" as="geometry" />
         </mxCell>
         <mxCell id="eIszsR3-EfdVA4BG_L_7-113" edge="1" parent="1" source="eIszsR3-EfdVA4BG_L_7-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;fillColor=#6a00ff;strokeColor=#3700CC;" target="eIszsR3-EfdVA4BG_L_7-99" value="">
           <mxGeometry relative="1" as="geometry" />

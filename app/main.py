@@ -178,8 +178,9 @@ def create_card(product, index, main_window):
     return card
 
 class MainWindow(QMainWindow):
-    def __init__(self, role_id=None, full_name=None): 
+    def __init__(self, user_id=None, role_id=None, full_name=None): 
         super().__init__()
+        self.user_id = user_id 
         self.role_id = role_id
         self.full_name = full_name
         self.db = Database()
@@ -188,7 +189,7 @@ class MainWindow(QMainWindow):
         role_title = role_names.get(self.role_id, "Гость")
         
         self.setWindowTitle(f"Мир интерьера — Каталог ({role_title})")
-        self.resize(850, 600)
+        self.resize(800, 600)
         
         icon_path = get_resource_path("Мир интерьера.ico")
         self.setWindowIcon(QIcon(icon_path))

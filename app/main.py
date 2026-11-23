@@ -496,11 +496,6 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    from PySide6.QtCore import QTranslator, QLibraryInfo
-    translator = QTranslator()
-    translator.load("qtbase_ru", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath))
-    app.installTranslator(translator)
-
     db = Database()
     from login_window import LoginWindow
     login_window = LoginWindow(db)

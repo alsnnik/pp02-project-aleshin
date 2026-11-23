@@ -2,6 +2,15 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                                QLineEdit, QPushButton, QMessageBox)
 from PySide6.QtCore import Qt
 
+# --- ЗАДАНИЕ 1: Функция валидации логина ---
+def validate_login(raw):
+    login = raw.strip()
+    if not login:
+        return None, "Введите логин (пробелы не считаются)"
+    if len(login) < 3:
+        return None, "Логин должен содержать минимум 3 символа"
+    return login, None
+
 class LoginWindow(QWidget):
     def __init__(self, db):
         super().__init__()
@@ -55,6 +64,21 @@ class LoginWindow(QWidget):
             QPushButton#btnGuest:hover {
                 background-color: #848c9c;
             }
+            
+            /* СТИЛИ ДЛЯ КНОПОК ВНУТРИ QMESSAGEBOX, ЧТОБЫ ОНИ НЕ БЫЛИ ПУСТЫМИ */
+            QMessageBox QPushButton {
+                background-color: #E0E0E0;
+                color: #000000;
+                border: 1px solid #AAAAAA;
+                border-radius: 4px;
+                padding: 5px 20px;
+                font-size: 14px;
+                font-family: Calibri;
+                min-width: 60px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #D0D0D0;
+            }
         """)
 
         # --- ВЕРСТКА ---
@@ -88,50 +112,16 @@ class LoginWindow(QWidget):
 
         self.setLayout(layout)
 
-    # --- ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ОКОН (чтобы кнопки не были пустыми) ---
-    def show_custom_message(self, icon_type, title, text):
-        msg = QMessageBox(self)
-        msg.setIcon(icon_type)
-        msg.setWindowTitle(title)
-        msg.setText(text)
-        
-        # Принудительно стилизуем кнопку, чтобы вернуть ей текст
-        btn = msg.addButton("ОК", QMessageBox.ButtonRole.AcceptRole)
-        btn.setStyleSheet("""
-            QPushButton {
-                background-color: #E0E0E0;
-                color: #000000;
-                border: 1px solid #AAAAAA;
-                border-radius: 4px;
-                padding: 5px 20px;
-                font-size: 14px;
-                font-family: Calibri;
-            }
-            QPushButton:hover {
-                background-color: #D0D0D0;
-            }
-        """)
-        msg.exec()
-
     def check_login(self):
-        login = self.login_input.text().strip()
-
-        # --- ЗАДАНИЕ 1.1: Warning для пустого логина ---
-        if not login:
-            self.show_custom_message(
-                QMessageBox.Icon.Warning, 
-                "Внимание", 
-                "Поле логина не может быть пустым!"
-            )
+        # --- Вызов валидации ---
+        login, error = validate_login(self.login_input.text())
+        if error:
+            QMessageBox.critical(self, "Ошибка", error, QMessageBox.StandardButton.Ok)
             return
 
         conn = self.db.get_connection()
         if conn is None:
-            self.show_custom_message(
-                QMessageBox.Icon.Critical, 
-                "Ошибка", 
-                "Нет подключения к БД"
-            )
+            QMessageBox.critical(self, "Ошибка", "Нет подключения к БД", QMessageBox.StandardButton.Ok)
             return
 
         cursor = None
@@ -145,12 +135,7 @@ class LoginWindow(QWidget):
             result = cursor.fetchone()
 
             if result is None:
-                # --- ЗАДАНИЕ 1.2: Error для неверного логина ---
-                self.show_custom_message(
-                    QMessageBox.Icon.Critical, 
-                    "Ошибка", 
-                    "Пользователь не найден"
-                )
+                QMessageBox.critical(self, "Ошибка", "Пользователь не найден", QMessageBox.StandardButton.Ok)
             else:
                 self.user_id = result[0]
                 self.role_id = result[1]
@@ -161,11 +146,11 @@ class LoginWindow(QWidget):
                 if not self.full_name:
                     self.full_name = login
 
-                # --- ЗАДАНИЕ 3.1: Information для успешного входа ---
-                self.show_custom_message(
-                    QMessageBox.Icon.Information, 
+                QMessageBox.information(
+                    self, 
                     "Информация", 
-                    f"Добро пожаловать, {self.full_name}!"
+                    f"Добро пожаловать, {self.full_name}!",
+                    QMessageBox.StandardButton.Ok
                 )
 
                 from main import MainWindow
@@ -177,11 +162,7 @@ class LoginWindow(QWidget):
                 self.main_window.show()
                 self.close()
         except Exception as e:
-            self.show_custom_message(
-                QMessageBox.Icon.Critical, 
-                "Ошибка БД", 
-                f"Ошибка при запросе:\n{e}"
-            )
+            QMessageBox.critical(self, "Ошибка БД", f"Ошибка при запросе:\n{e}", QMessageBox.StandardButton.Ok)
         finally:
             if cursor:
                 cursor.close()
@@ -194,31 +175,15 @@ class LoginWindow(QWidget):
         self.main_window.show()
         self.close()
 
-    # --- ЗАДАНИЕ 2.1: Warning при закрытии окна ---
     def closeEvent(self, event):
-        msg = QMessageBox(self)
-        msg.setIcon(QMessageBox.Icon.Warning)
-        msg.setWindowTitle("Предупреждение")
-        msg.setText("Вы уверены, что хотите выйти?")
-        
-        btn_yes = msg.addButton("Да", QMessageBox.ButtonRole.YesRole)
-        btn_no = msg.addButton("Нет", QMessageBox.ButtonRole.NoRole)
-        
-        # Стилизуем обе кнопки
-        style = """
-            QPushButton {
-                background-color: #E0E0E0; color: #000000;
-                border: 1px solid #AAAAAA; border-radius: 4px;
-                padding: 5px 20px; font-size: 14px; font-family: Calibri;
-            }
-            QPushButton:hover { background-color: #D0D0D0; }
-        """
-        btn_yes.setStyleSheet(style)
-        btn_no.setStyleSheet(style)
-        
-        msg.exec()
-        
-        if msg.clickedButton() == btn_yes:
+        # Явно передаем кнопки Да и Нет
+        reply = QMessageBox.warning(
+            self, 
+            "Предупреждение", 
+            "Вы уверены, что хотите выйти?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
             event.accept()
         else:
             event.ignore()

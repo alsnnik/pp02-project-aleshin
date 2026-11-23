@@ -26,6 +26,128 @@ def get_resource_path(filename):
             return path
     return possible_paths[0]
 
+# --- КЛАСС КАРТОЧКИ ТОВАРА (QDialog) ---
+class ProductCard(QDialog):
+    def __init__(self, product_id, parent=None):
+        super().__init__(parent)
+        self.product_id = product_id
+        self.db = parent.db if parent is not None else Database()
+        self.setWindowTitle("Карточка товара")
+        self.resize(320, 520) # Сделал чуть выше, чтобы кнопки влезли
+        
+        # --- СТИЛИ ---
+        self.setStyleSheet("""
+            QDialog { background-color: #FFFFFF; }
+            QLabel { color: #000000; font-family: Calibri; }
+            QComboBox {
+                border: 1px solid #CCCCCC; border-radius: 5px;
+                padding: 5px; background-color: #FFFFFF;
+                color: #000000; font-size: 14px;
+            }
+            QPushButton {
+                background-color: #70B2AF; color: #FFFFFF;
+                border-radius: 5px; padding: 8px;
+                font-size: 14px; font-weight: bold;
+            }
+            QPushButton:hover { background-color: #5c9694; }
+            /* Стиль для кнопки "Закрыть", чтобы она была серой */
+            QPushButton#btnClose {
+                background-color: #E0E0E0; color: #333333;
+            }
+            QPushButton#btnClose:hover { background-color: #CCCCCC; }
+        """)
+        
+        self.setup_ui()
+        self.load_data()
+
+    def setup_ui(self):
+        self.layout = QVBoxLayout(self)
+        
+        # Изображение
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignCenter)
+        
+        # Текстовые поля
+        self.name_label = QLabel("Загрузка...")
+        self.name_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        
+        self.price_label = QLabel("")
+        self.price_label.setStyleSheet("color: #005A2F; font-size: 14px; font-weight: bold;")
+        
+        self.description_label = QLabel("")
+        self.description_label.setWordWrap(True)
+
+        # Выпадающий список (Выпуск 1, 2, 3)
+        self.size_combo = QComboBox()
+        self.size_combo.addItems(["Выпуск 1", "Выпуск 2", "Выпуск 3"])
+        self.variant_combo = self.size_combo 
+        
+        # Кнопки
+        self.add_button = QPushButton("В корзину")
+        self.add_button.clicked.connect(self.add_selected_to_cart)
+        
+        self.close_button = QPushButton("Закрыть")
+        self.close_button.setObjectName("btnClose") # Даем имя для стиля
+        self.close_button.clicked.connect(self.accept) # Закрывает диалог
+
+        # Компоновка
+        self.layout.addWidget(self.image_label)
+        self.layout.addWidget(self.name_label)
+        self.layout.addWidget(self.price_label)
+        self.layout.addWidget(self.description_label)
+        self.layout.addWidget(QLabel("Выберите вариант:"))
+        self.layout.addWidget(self.size_combo)
+        self.layout.addWidget(self.add_button)
+        self.layout.addWidget(self.close_button)
+
+    def load_data(self):
+        """Запрашивает реальные данные из БД по ID"""
+        try:
+            conn = self.db.get_connection()
+            if not conn:
+                return
+            cursor = conn.cursor()
+            # Ищем товар по ID
+            cursor.execute("SELECT name, price, description FROM products WHERE product_id = %s", (self.product_id,))
+            row = cursor.fetchone()
+            
+            if row:
+                name, price, description = row
+                self.name_label.setText(name)
+                
+                # Пересчитываем цену
+                new_price = calculate_price_interior(self.product_id, float(price))
+                self.price_label.setText(f"Цена: {new_price:.2f} ₽")
+                
+                self.description_label.setText(description if description else "Описание отсутствует")
+            else:
+                self.name_label.setText(f"Товар ID {self.product_id}")
+                self.price_label.setText("Данные не найдены")
+                
+            cursor.close()
+            self.db.release_connection(conn)
+        except Exception as e:
+            print(f"Ошибка загрузки данных карточки: {e}")
+
+        # Загрузка картинки
+        img_name = f"IMG_13_{self.product_id:03d}.png"
+        img_path = get_resource_path(img_name)
+        fallback_path = get_resource_path("picture.png")
+        
+        if os.path.exists(img_path):
+            pixmap = QPixmap(img_path)
+        else:
+            pixmap = QPixmap(fallback_path)
+            
+        self.image_label.setPixmap(pixmap.scaled(200, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def add_selected_to_cart(self):
+        QMessageBox.information(
+            self, "Этап разработки", "Корзина будет подключена в РТ 19"
+        )
+
+# -------------------------------------------------------------------------
+
 def calculate_price_interior(item_id, base_price):
     try:
         temp_db = Database()
@@ -67,7 +189,7 @@ def create_card(product, index, main_window):
     if not manufacturer:
         manufacturer = "Без бренда"
 
-    card = ClickableCard(product, main_window.show_product_info)
+    card = ClickableCard(product, main_window.open_product_card)
     card.setFixedHeight(110)
 
     card_layout = QHBoxLayout()
@@ -183,7 +305,13 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.setup_role_interface()
 
-    # ================== НАВИГАЦИЯ ==================
+    # ================== НАВИГАЦИЯ И КАРТОЧКА ==================
+    def open_product_card(self, product_data):
+        product_id = product_data[0]
+        card = ProductCard(product_id, self)
+        card.exec()
+        self.load_products()
+
     def switch_page(self, index):
         self.stacked_widget.setCurrentIndex(index)
         titles = {
@@ -341,13 +469,13 @@ class MainWindow(QMainWindow):
 
         self.filter_combo.currentIndexChanged.connect(self.load_products)
         
-        # СОРТИРОВКА (Добавлено "цены" в текст)
+        # СОРТИРОВКА
         self.sort_combo = QComboBox()
         self.sort_combo.addItems(["По возрастанию цены", "По убыванию цены"])
         self.sort_combo.currentIndexChanged.connect(self.load_products)
         
         self.filter_combo.setMinimumWidth(150)
-        self.sort_combo.setMinimumWidth(180) # Чуть шире, чтобы текст влез
+        self.sort_combo.setMinimumWidth(180)
         
         filters_layout.addWidget(self.search_input, 1)
         filters_layout.addWidget(self.filter_combo)
@@ -410,7 +538,6 @@ class MainWindow(QMainWindow):
         search_text = self.search_input.text().strip()
         category_text = self.filter_combo.currentText()
         
-        # ИЗМЕНЕНО: проверяем текст с учетом нового названия
         sort_order = "ASC" if "возрастанию" in self.sort_combo.currentText() else "DESC"
 
         try:
@@ -429,19 +556,6 @@ class MainWindow(QMainWindow):
             self.list_layout.addWidget(error_label)
             
         self.list_layout.addStretch()
-
-    def show_product_info(self, product_data):
-        (p_id, name, category, manufacturer, price, total_quantity) = product_data
-        new_price = calculate_price_interior(p_id, float(price))
-
-        self.product_info_label.setText(
-            f"<b>Товар:</b> {name}<br>"
-            f"<b>Производитель:</b> {manufacturer or 'Без бренда'}<br>"
-            f"<b>Категория:</b> {category}<br>"
-            f"<b>В наличии:</b> {int(total_quantity)} шт.<br><br>"
-            f"<b style='color:#005A2F; font-size:18px;'>Цена: {new_price:.2f} ₽</b>"
-        )
-        self.switch_page(1)
 
     def load_orders(self):
         try:

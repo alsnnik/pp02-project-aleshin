@@ -23,7 +23,6 @@ class LoginWindow(QWidget):
                 font-size: 14px;
                 color: #333333;
             }
-            /* Поле ввода: явно указываем черный цвет текста */
             QLineEdit {
                 border: 1px solid #CCCCCC;
                 border-radius: 5px;
@@ -33,9 +32,8 @@ class LoginWindow(QWidget):
                 color: #000000; 
             }
             QLineEdit:focus {
-                border: 1px solid #70B2AF; /* Бирюзовая рамка при вводе */
+                border: 1px solid #70B2AF; 
             }
-            /* Кнопка "Войти" (бирюзовая) */
             QPushButton#btnLogin {
                 background-color: #70B2AF;
                 color: white;
@@ -47,7 +45,6 @@ class LoginWindow(QWidget):
             QPushButton#btnLogin:hover {
                 background-color: #5c9694;
             }
-            /* Кнопка "Войти как гость" (серо-голубая) */
             QPushButton#btnGuest {
                 background-color: #9BA4B5;
                 color: white;
@@ -91,22 +88,55 @@ class LoginWindow(QWidget):
 
         self.setLayout(layout)
 
+    # --- ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ОКОН (чтобы кнопки не были пустыми) ---
+    def show_custom_message(self, icon_type, title, text):
+        msg = QMessageBox(self)
+        msg.setIcon(icon_type)
+        msg.setWindowTitle(title)
+        msg.setText(text)
+        
+        # Принудительно стилизуем кнопку, чтобы вернуть ей текст
+        btn = msg.addButton("ОК", QMessageBox.ButtonRole.AcceptRole)
+        btn.setStyleSheet("""
+            QPushButton {
+                background-color: #E0E0E0;
+                color: #000000;
+                border: 1px solid #AAAAAA;
+                border-radius: 4px;
+                padding: 5px 20px;
+                font-size: 14px;
+                font-family: Calibri;
+            }
+            QPushButton:hover {
+                background-color: #D0D0D0;
+            }
+        """)
+        msg.exec()
+
     def check_login(self):
         login = self.login_input.text().strip()
 
+        # --- ЗАДАНИЕ 1.1: Warning для пустого логина ---
         if not login:
-            QMessageBox.warning(self, "Ошибка", "Введите логин")
+            self.show_custom_message(
+                QMessageBox.Icon.Warning, 
+                "Внимание", 
+                "Поле логина не может быть пустым!"
+            )
             return
 
         conn = self.db.get_connection()
         if conn is None:
-            QMessageBox.critical(self, "Ошибка", "Нет подключения к БД")
+            self.show_custom_message(
+                QMessageBox.Icon.Critical, 
+                "Ошибка", 
+                "Нет подключения к БД"
+            )
             return
 
         cursor = None
         try:
             cursor = conn.cursor()
-            # Ищем пользователя по логину
             cursor.execute(
                 "SELECT user_id, role_id, last_name, first_name "
                 "FROM users WHERE login = %s",
@@ -115,19 +145,29 @@ class LoginWindow(QWidget):
             result = cursor.fetchone()
 
             if result is None:
-                QMessageBox.warning(self, "Ошибка", "Неверный логин")
+                # --- ЗАДАНИЕ 1.2: Error для неверного логина ---
+                self.show_custom_message(
+                    QMessageBox.Icon.Critical, 
+                    "Ошибка", 
+                    "Пользователь не найден"
+                )
             else:
                 self.user_id = result[0]
                 self.role_id = result[1]
                 
-                # Формируем ФИО
                 last_name = result[2] if result[2] else ""
                 first_name = result[3] if result[3] else ""
                 self.full_name = f"{last_name} {first_name}".strip()
                 if not self.full_name:
-                    self.full_name = login # Если ФИО пустое, показываем логин
+                    self.full_name = login
 
-                # Переходим в главное окно
+                # --- ЗАДАНИЕ 3.1: Information для успешного входа ---
+                self.show_custom_message(
+                    QMessageBox.Icon.Information, 
+                    "Информация", 
+                    f"Добро пожаловать, {self.full_name}!"
+                )
+
                 from main import MainWindow
                 self.main_window = MainWindow(
                     user_id=self.user_id, 
@@ -137,7 +177,11 @@ class LoginWindow(QWidget):
                 self.main_window.show()
                 self.close()
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка БД", f"Ошибка при запросе:\n{e}")
+            self.show_custom_message(
+                QMessageBox.Icon.Critical, 
+                "Ошибка БД", 
+                f"Ошибка при запросе:\n{e}"
+            )
         finally:
             if cursor:
                 cursor.close()
@@ -149,3 +193,32 @@ class LoginWindow(QWidget):
         self.main_window = MainWindow(user_id=None, role_id=None, full_name="Гость")
         self.main_window.show()
         self.close()
+
+    # --- ЗАДАНИЕ 2.1: Warning при закрытии окна ---
+    def closeEvent(self, event):
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Предупреждение")
+        msg.setText("Вы уверены, что хотите выйти?")
+        
+        btn_yes = msg.addButton("Да", QMessageBox.ButtonRole.YesRole)
+        btn_no = msg.addButton("Нет", QMessageBox.ButtonRole.NoRole)
+        
+        # Стилизуем обе кнопки
+        style = """
+            QPushButton {
+                background-color: #E0E0E0; color: #000000;
+                border: 1px solid #AAAAAA; border-radius: 4px;
+                padding: 5px 20px; font-size: 14px; font-family: Calibri;
+            }
+            QPushButton:hover { background-color: #D0D0D0; }
+        """
+        btn_yes.setStyleSheet(style)
+        btn_no.setStyleSheet(style)
+        
+        msg.exec()
+        
+        if msg.clickedButton() == btn_yes:
+            event.accept()
+        else:
+            event.ignore()

@@ -322,7 +322,7 @@ class MainWindow(QMainWindow):
         self.search_input.setPlaceholderText("Поиск по названию...")
         self.search_input.textChanged.connect(self.load_products)
         
-        # --- ФИЛЬТР КАТЕГОРИЙ С ЗАЩИТОЙ ОТ ПУСТОТЫ ---
+        # ФИЛЬТР КАТЕГОРИЙ
         self.filter_combo = QComboBox()
         self.filter_combo.addItem("Все категории")
         
@@ -330,12 +330,10 @@ class MainWindow(QMainWindow):
             categories = self.db.get_categories()
             if categories:
                 for cat in categories:
-                    # Добавляем, если это строка. Если кортеж - берем первый элемент
                     cat_name = cat[0] if isinstance(cat, (tuple, list)) else cat
                     if cat_name:
                         self.filter_combo.addItem(str(cat_name))
             else:
-                # Если БД вернула пустоту, добавляем базовые категории вручную
                 self.filter_combo.addItems(["Столы", "Стулья", "Диваны", "Текстиль", "Освещение"])
         except Exception as e:
             print(f"Ошибка загрузки категорий: {e}")
@@ -343,12 +341,13 @@ class MainWindow(QMainWindow):
 
         self.filter_combo.currentIndexChanged.connect(self.load_products)
         
+        # СОРТИРОВКА (Добавлено "цены" в текст)
         self.sort_combo = QComboBox()
-        self.sort_combo.addItems(["По возрастанию", "По убыванию"])
+        self.sort_combo.addItems(["По возрастанию цены", "По убыванию цены"])
         self.sort_combo.currentIndexChanged.connect(self.load_products)
         
         self.filter_combo.setMinimumWidth(150)
-        self.sort_combo.setMinimumWidth(150)
+        self.sort_combo.setMinimumWidth(180) # Чуть шире, чтобы текст влез
         
         filters_layout.addWidget(self.search_input, 1)
         filters_layout.addWidget(self.filter_combo)
@@ -410,7 +409,9 @@ class MainWindow(QMainWindow):
                 
         search_text = self.search_input.text().strip()
         category_text = self.filter_combo.currentText()
-        sort_order = "ASC" if self.sort_combo.currentText() == "По возрастанию" else "DESC"
+        
+        # ИЗМЕНЕНО: проверяем текст с учетом нового названия
+        sort_order = "ASC" if "возрастанию" in self.sort_combo.currentText() else "DESC"
 
         try:
             products = self.db.get_products(search_text, category_text, sort_order)

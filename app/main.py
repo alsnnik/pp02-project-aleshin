@@ -151,7 +151,7 @@ class MainWindow(QMainWindow):
         self.role_title = role_names.get(self.role_id, "Гость")
 
         self.setWindowTitle("Мир интерьера — Каталог")
-        self.resize(850, 750) # Немного увеличил высоту, чтобы всё влезло
+        self.resize(850, 750)
         
         icon_path = get_resource_path("Мир интерьера.ico")
         self.setWindowIcon(QIcon(icon_path))
@@ -249,7 +249,7 @@ class MainWindow(QMainWindow):
         line.setStyleSheet("background-color: #E0E0E0;")
         main_layout.addWidget(line)
 
-        # ВЕРХНИЕ КНОПКИ (Админ-панель и Заказы для менеджера)
+        # ВЕРХНИЕ КНОПКИ
         buttons_layout = QHBoxLayout()
         
         self.order_button = QPushButton("Купить товар")
@@ -281,7 +281,7 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(self.stacked_widget)
 
-        # ================== НИЖНИЕ КНОПКИ (КАК НА ПРИМЕРЕ) ==================
+        # НИЖНИЕ КНОПКИ
         bottom_nav_layout = QHBoxLayout()
         bottom_nav_layout.setContentsMargins(0, 10, 0, 0)
         
@@ -297,7 +297,7 @@ class MainWindow(QMainWindow):
         self.btn_page3.clicked.connect(lambda: self.switch_page(2))
         bottom_nav_layout.addWidget(self.btn_page3)
 
-        bottom_nav_layout.addStretch() # Прижимаем влево
+        bottom_nav_layout.addStretch()
         main_layout.addLayout(bottom_nav_layout)
 
         self.setCentralWidget(central)
@@ -311,6 +311,7 @@ class MainWindow(QMainWindow):
         filters_layout = QHBoxLayout()
         filters_layout.setContentsMargins(0, 10, 0, 10)
         
+        # Поле поиска
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Поиск по названию, стилю или категории...")
         self.search_input.textChanged.connect(self.load_products)
@@ -381,12 +382,14 @@ class MainWindow(QMainWindow):
 
     # ================== ДАННЫЕ ==================
     def load_products(self):
+        # Очищаем контейнер
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
                 
-        search_text = self.search_input.text()
+        # ЗАДАНИЕ 2: Получаем текст и делаем strip()
+        search_text = self.search_input.text().strip()
         category_text = self.filter_combo.currentText()
         sort_order = "ASC" if self.sort_combo.currentText() == "По возрастанию" else "DESC"
 

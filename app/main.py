@@ -172,6 +172,12 @@ class MainWindow(QMainWindow):
                 color: #000000;
                 font-size: 13px;
             }
+            QComboBox QAbstractItemView {
+                background-color: #FFFFFF;
+                color: #000000;
+                selection-background-color: #70B2AF;
+                selection-color: #FFFFFF;
+            }
         """)
 
         self.setup_ui()
@@ -313,13 +319,28 @@ class MainWindow(QMainWindow):
         
         # Поле поиска
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Поиск по названию, стилю или категории...")
+        self.search_input.setPlaceholderText("Поиск по названию...")
         self.search_input.textChanged.connect(self.load_products)
         
+        # --- ФИЛЬТР КАТЕГОРИЙ С ЗАЩИТОЙ ОТ ПУСТОТЫ ---
         self.filter_combo = QComboBox()
         self.filter_combo.addItem("Все категории")
-        for cat in self.db.get_categories():
-            self.filter_combo.addItem(cat[0])
+        
+        try:
+            categories = self.db.get_categories()
+            if categories:
+                for cat in categories:
+                    # Добавляем, если это строка. Если кортеж - берем первый элемент
+                    cat_name = cat[0] if isinstance(cat, (tuple, list)) else cat
+                    if cat_name:
+                        self.filter_combo.addItem(str(cat_name))
+            else:
+                # Если БД вернула пустоту, добавляем базовые категории вручную
+                self.filter_combo.addItems(["Столы", "Стулья", "Диваны", "Текстиль", "Освещение"])
+        except Exception as e:
+            print(f"Ошибка загрузки категорий: {e}")
+            self.filter_combo.addItems(["Столы", "Стулья", "Диваны", "Текстиль", "Освещение"])
+
         self.filter_combo.currentIndexChanged.connect(self.load_products)
         
         self.sort_combo = QComboBox()
@@ -382,13 +403,11 @@ class MainWindow(QMainWindow):
 
     # ================== ДАННЫЕ ==================
     def load_products(self):
-        # Очищаем контейнер
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
                 
-        # ЗАДАНИЕ 2: Получаем текст и делаем strip()
         search_text = self.search_input.text().strip()
         category_text = self.filter_combo.currentText()
         sort_order = "ASC" if self.sort_combo.currentText() == "По возрастанию" else "DESC"
@@ -399,7 +418,7 @@ class MainWindow(QMainWindow):
                 for index, product in enumerate(products):
                     self.list_layout.addWidget(create_card(product, index, self))
             else:
-                error_label = QLabel("Товары не найдены (БД вернула пустой список)")
+                error_label = QLabel("Товары не найдены")
                 error_label.setAlignment(Qt.AlignCenter)
                 self.list_layout.addWidget(error_label)
         except Exception as e:
